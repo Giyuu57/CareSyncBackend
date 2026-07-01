@@ -1,0 +1,286 @@
+register = localhost:3000/auth/register/
+{
+    "name":"store-owner",
+    "email":"store@mediq.com",
+    "password":"store",
+    "gender":"female",
+    "phone":9136472253
+}
+
+{
+    "name":"customer",
+    "email":"isht@mediq.com",
+    "password":"isht",
+    "gender":"male",
+    "phone":9999299992
+}
+
+login = localhost:3000/auth/login/
+{
+    "email" : "admin@mediq.com",
+    "password" :"admin"
+}
+
+gets auth user details = localhost:3000/user/
+
+admin auth =  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OTc1MWYzNmFiOWNlMTg2YWJiZjg2NCIsIm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczODA5OTMwOCwiZXhwIjoxNzQwNjkxMzA4fQ.iyBexFn3SwyCnlSyX1JQpit1rOisVM5aG2gst8KXjF8
+
+store auth = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OTlmOTYwZTMzZGJhOTE3MmIwM2ViMiIsIm5hbWUiOiJzdG9yZS1vd25lciIsInJvbGUiOiJzdG9yZS1vd25lciIsInN0b3JlX2lkIjoiNjc5YTQxNGIxODIxOGVmYTdlMzliOWQxIiwiaWF0IjoxNzM4MTY0MzYwLCJleHAiOjE3NDA3NTYzNjB9.ACarnd2qhjlLdSwME91jI95oIz4zWOTNgOFj9dE3gM0
+
+cutomer auth now = 
+
+request = localhost:3000/request/
+{
+    "owner": "6799f960e33dba9172b03eb2",
+    "name": "Pharmacy Name",
+    "licenseNumber": "ABC123",
+    "contact": "123-456-7890",
+    "address": {
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "street": "123 Main St",
+        "city": "San Francisco",
+        "state": "CA",
+        "postalCode": "94103",
+        "country": "USA"
+    }
+}
+
+result =
+{
+    "owner": "6799f960e33dba9172b03eb2",
+    "name": "Pharmacy Name",
+    "licenseNumber": "ABC123",
+    "contact": "123-456-7890",
+    "address": {
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "street": "123 Main St",
+        "city": "San Francisco",
+        "state": "CA",
+        "postalCode": "94103",
+        "country": "USA"
+    },
+    "status": "pending",
+    "_id": "6799fc19e33dba9172b03eb6",
+    "createdAt": "2025-01-29T09:59:53.074Z",
+    "updatedAt": "2025-01-29T09:59:53.074Z",
+    "__v": 0
+}
+
+now admin accepts
+with his tocken he has options [rejected,verified,]
+
+{
+    status:"verified"
+}
+
+adding medicine = localhost:3000/medicine/ (post)
+{
+    "name": "Paracetamol",
+    "composition": "Acetaminophen 500mg",
+    "manufacturer": "Pharma Inc.",
+    "usage": "Pain relief and fever reduction",
+    "precautions": "Do not exceed the recommended dose. Consult a doctor if symptoms persist."
+}
+sample data
+"Paracetamol"  "_id": "679a489bfa8a3f1c09a22074",
+"Ibuprofen"  "_id: 679a49ebfeec1cf53c034e41",
+"Amoxicillin"  "_id": "679a49f5feec1cf53c034e43",
+
+searching all meds = 'localhost:3000/medicine/ (get)
+
+inventory by auth = localhost:3000/inventory/ (post)
+{
+    "medicine":"679a489bfa8a3f1c09a22074",
+    "quantity":50,
+    "expiryDate":"2025-06-25"
+}
+inventory by auth = localhost:3000/inventory/ (get)
+
+update inventory by auth = localhost:3000/inventory/:id (put)
+{
+    "quantity":59,
+    "expiryDate":"2025-06-30"
+}
+
+
+
+Orders update inventory auth = localhost:3000/order/ (post)
+
+{
+    "seller": "John Doe",
+    "medicines": [
+        {
+            "medicine_id": "679a489bfa8a3f1c09a22074", // Paracetamol
+            "quantity": 40,
+            "expiry": "2023-12-31",
+            "price": 5.99,
+            "type": "renew"
+        },
+        {
+            "medicine_id": "679a49ebfeec1cf53c034e41", // Ibuprofen
+            "quantity": 54,
+            "expiry": "2024-06-30",
+            "price": 7.99,
+            "type": "renew"
+        }
+    ],
+    "totalItems": 2,
+    "orderDate": "2023-01-01",
+    "remarks": "Urgent delivery"
+}
+
+get orders auth localhost:3000/order/ (get) done
+
+[
+    {
+        "_id": "679a79044dd1f92ff0648959",
+        "store": "679a414b18218efa7e39b9d1",
+        "seller": "John Doe",
+        "medicines": [
+            {
+                "medicine_id": {
+                    "_id": "679a489bfa8a3f1c09a22074",
+                    "name": "Paracetamol",
+                    "composition": "Acetaminophen 500mg",
+                    "manufacturer": "Pharma Inc.",
+                    "usage": "Pain relief and fever reduction",
+                    "precautions": "Do not exceed the recommended dose. Consult a doctor if symptoms persist.",
+                    "createdAt": "2025-01-29T15:26:19.566Z",
+                    "updatedAt": "2025-01-29T15:26:19.566Z",
+                    "__v": 0
+                },
+                "quantity": 10,
+                "expiry": "2023-12-31T00:00:00.000Z",
+                "price": 5.99,
+                "type": "renew",
+                "_id": "679a79044dd1f92ff064895a"
+            },
+            {
+                "medicine_id": {
+                    "_id": "679a49ebfeec1cf53c034e41",
+                    "name": "Ibuprofen",
+                    "composition": "Ibuprofen 200mg",
+                    "manufacturer": "HealthCorp",
+                    "usage": "Pain relief and anti-inflammatory",
+                    "precautions": "Take with food to avoid stomach upset. Consult a doctor if symptoms persist.",
+                    "createdAt": "2025-01-29T15:31:55.862Z",
+                    "updatedAt": "2025-01-29T15:31:55.862Z",
+                    "__v": 0
+                },
+                "quantity": 5,
+                "expiry": "2024-06-30T00:00:00.000Z",
+                "price": 7.99,
+                "type": "new",
+                "_id": "679a79044dd1f92ff064895b"
+            }
+        ],
+        "totalItems": 2,
+        "status": "pending",
+        "orderDate": "2025-01-29T18:52:52.877Z",
+        "createdAt": "2025-01-29T18:52:52.882Z",
+        "updatedAt": "2025-01-29T18:52:52.882Z",
+        "__v": 0
+    },
+    {
+        "_id": "679a7f284dd1f92ff0648960",
+        "store": "679a414b18218efa7e39b9d1",
+        "seller": "John Doe",
+        "medicines": [
+            {
+                "medicine_id": {
+                    "_id": "679a489bfa8a3f1c09a22074",
+                    "name": "Paracetamol",
+                    "composition": "Acetaminophen 500mg",
+                    "manufacturer": "Pharma Inc.",
+                    "usage": "Pain relief and fever reduction",
+                    "precautions": "Do not exceed the recommended dose. Consult a doctor if symptoms persist.",
+                    "createdAt": "2025-01-29T15:26:19.566Z",
+                    "updatedAt": "2025-01-29T15:26:19.566Z",
+                    "__v": 0
+                },
+                "quantity": 40,
+                "expiry": "2023-12-31T00:00:00.000Z",
+                "price": 5.99,
+                "type": "renew",
+                "_id": "679a7f284dd1f92ff0648961"
+            },
+            {
+                "medicine_id": {
+                    "_id": "679a49ebfeec1cf53c034e41",
+                    "name": "Ibuprofen",
+                    "composition": "Ibuprofen 200mg",
+                    "manufacturer": "HealthCorp",
+                    "usage": "Pain relief and anti-inflammatory",
+                    "precautions": "Take with food to avoid stomach upset. Consult a doctor if symptoms persist.",
+                    "createdAt": "2025-01-29T15:31:55.862Z",
+                    "updatedAt": "2025-01-29T15:31:55.862Z",
+                    "__v": 0
+                },
+                "quantity": 54,
+                "expiry": "2024-06-30T00:00:00.000Z",
+                "price": 7.99,
+                "type": "renew",
+                "_id": "679a7f284dd1f92ff0648962"
+            }
+        ],
+        "totalItems": 2,
+        "status": "pending",
+        "orderDate": "2025-01-29T19:19:04.552Z",
+        "createdAt": "2025-01-29T19:19:04.554Z",
+        "updatedAt": "2025-01-29T19:19:04.554Z",
+        "__v": 0
+    },
+    {
+        "_id": "679a7fb3aa25f789c3be63e4",
+        "store": "679a414b18218efa7e39b9d1",
+        "seller": "John Doe",
+        "medicines": [
+            {
+                "medicine_id": {
+                    "_id": "679a489bfa8a3f1c09a22074",
+                    "name": "Paracetamol",
+                    "composition": "Acetaminophen 500mg",
+                    "manufacturer": "Pharma Inc.",
+                    "usage": "Pain relief and fever reduction",
+                    "precautions": "Do not exceed the recommended dose. Consult a doctor if symptoms persist.",
+                    "createdAt": "2025-01-29T15:26:19.566Z",
+                    "updatedAt": "2025-01-29T15:26:19.566Z",
+                    "__v": 0
+                },
+                "quantity": 40,
+                "expiry": "2023-12-31T00:00:00.000Z",
+                "price": 5.99,
+                "type": "renew",
+                "_id": "679a7fb3aa25f789c3be63e5"
+            },
+            {
+                "medicine_id": {
+                    "_id": "679a49ebfeec1cf53c034e41",
+                    "name": "Ibuprofen",
+                    "composition": "Ibuprofen 200mg",
+                    "manufacturer": "HealthCorp",
+                    "usage": "Pain relief and anti-inflammatory",
+                    "precautions": "Take with food to avoid stomach upset. Consult a doctor if symptoms persist.",
+                    "createdAt": "2025-01-29T15:31:55.862Z",
+                    "updatedAt": "2025-01-29T15:31:55.862Z",
+                    "__v": 0
+                },
+                "quantity": 54,
+                "expiry": "2024-06-30T00:00:00.000Z",
+                "price": 7.99,
+                "type": "renew",
+                "_id": "679a7fb3aa25f789c3be63e6"
+            }
+        ],
+        "totalItems": 2,
+        "status": "pending",
+        "orderDate": "2025-01-29T19:21:23.766Z",
+        "createdAt": "2025-01-29T19:21:23.775Z",
+        "updatedAt": "2025-01-29T19:21:23.775Z",
+        "__v": 0
+    }
+]
+
+done
