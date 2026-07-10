@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import './config/loadEnv.js';
 import express from 'express';
 import auth from './routes/userLoginRoutes.js';
