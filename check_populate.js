@@ -4,7 +4,7 @@ import './models/medicine.js';
 import './models/user.js';
 import { Order } from './models/orders.js';
 
-const uri = "mongodb+srv://admin:admin@caresync.eu9ff.mongodb.net/CareSync?retryWrites=true&w=majority&appName=CareSync";
+const uri;
 
 async function main() {
   await mongoose.connect(uri);
