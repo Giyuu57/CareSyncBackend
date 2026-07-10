@@ -239,9 +239,9 @@ const deleteUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Admin cannot delete their own account.' });
   }
 
-  // Prevent deletion of customer or store-owner accounts
-  if (user.role === 'customer' || user.role === 'store-owner') {
-    return res.status(400).json({ message: 'Admin cannot delete a user or store owner account.' });
+  // Prevent deletion of other admin accounts through this endpoint
+  if (user.role === 'admin') {
+    return res.status(400).json({ message: 'Admin accounts cannot be deleted through this endpoint.' });
   }
 
   const session = await mongoose.startSession();

@@ -3,7 +3,6 @@ import { authcheck } from '../middleware/authware.js';
 import {roles} from '../middleware/rolesware.js';
 import { getUser, getUsers, updateUser ,deleteUser ,getUserProfile , updateUserProfile} from '../controllers/userController.js';
 import { getStorebyAuth ,updateStoreById } from '../controllers/storeController.js';
-import { get } from 'mongoose';
 
 const router = express.Router();
 router.route('/').get(authcheck,roles('customer','store-owner','admin'),getUserProfile)

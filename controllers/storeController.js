@@ -41,10 +41,14 @@ export const updateStore = asyncHandler(async (req, res) => {
 
 // Update a store by ID
 export const updateStoreById = asyncHandler(async (req, res) => {
-  const { id } = req.user.store_id;
+  const id = req.user.store_id;
   const updatedData = req.body;
 
   const updatedStore = await Store.findByIdAndUpdate(id, updatedData, { new: true });
+  if (!updatedStore) {
+    res.status(404);
+    throw new Error('Store not found');
+  }
   res.status(200).json(updatedStore);
 });
 

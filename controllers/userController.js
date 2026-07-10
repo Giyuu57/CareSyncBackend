@@ -10,6 +10,10 @@ import {
 // Auth Get user profile
 const getUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
   user.passwordHash = undefined;
   res.status(200).json(user);
 });
@@ -67,12 +71,12 @@ const getUsers = asyncHandler(async (req, res) => {
 // Get a user
 const getUser = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  try {
-    const user = await User.findById(id);
-    res.status(200).json(user);
-  } catch (error) {
-    throw new Error('NotFoundError');
+  const user = await User.findById(id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
   }
+  res.status(200).json(user);
 });
 
 // Update a user

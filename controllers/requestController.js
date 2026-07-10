@@ -141,7 +141,7 @@ const updateRequest = asyncHandler(async (req, res) => {
     } catch (err) {
       await session.abortTransaction();
       session.endSession();
-      throw new Error('CastError');
+      throw err;
     }
   } else {
     const updatedRequest = await Request.findByIdAndUpdate(
