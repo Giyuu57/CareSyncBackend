@@ -40,3 +40,10 @@ app.listen(3000, () => {
 });
 
 const PO = process.env.PORT;
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "CareSync backend is connected",
+  });
+});
