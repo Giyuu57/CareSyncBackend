@@ -1,95 +1,67 @@
+// Known "signal" errors: controllers/middleware that throw `new Error('SomeCode')`
+// as a plain string code (no res.status() set beforehand rely on this map).
+const KNOWN_CODES = {
+  NotFoundError: { statusCode: 404, title: 'Not Found', message: 'Resource not found' },
+  BadRequestError: { statusCode: 400, title: 'Bad Request', message: 'Bad request' },
+  JsonWebTokenError: { statusCode: 401, title: 'Invalid Token', message: 'Invalid token' },
+  TokenExpiredError: { statusCode: 401, title: 'Token Expired', message: 'Token expired' },
+  UnauthorizedError: { statusCode: 401, title: 'Unauthorized', message: 'Authentication is required for the request' },
+  ForbiddenError: { statusCode: 403, title: 'Forbidden', message: 'The client does not have permission to access the resource' },
+  ConflictError: { statusCode: 409, title: 'Conflict', message: 'The request conflicts with the current state of the resource' },
+  TooManyRequestsError: { statusCode: 429, title: 'Too Many Requests', message: 'The user has sent too many requests in a given timeframe' },
+};
+
 export const errorHandler = (err, req, res, next) => {
+  let statusCode;
+  let title = 'Error';
+  let message = err.message || 'Something went wrong';
+  let details;
 
-    let statusCode = 500; // Default to internal server error
-    let errorResponse = {
-        title: err.title ||'Error',
-        code: err.code || 'UNKNOWN_ERROR',
-        message: err.message || 'Something went wrong',
-        StakeTrace: err.stack || "null"
-    };
-    if(err.name == 'MongoServerError'){
-        errorResponse.message = 'MongoError';
-    }
-    else if(err.name == 'MongooseError'){
-        errorResponse.message = 'MongooseError';
-    }
+  if (KNOWN_CODES[err.message]) {
+    // Custom signal error thrown by our own code, e.g. `throw new Error('ForbiddenError')`
+    ({ statusCode, title, message } = KNOWN_CODES[err.message]);
+  } else if (err.name === 'ValidationError') {
+    // Real Mongoose validation error
+    statusCode = 400;
+    title = 'Validation Error';
+    details = err.errors;
+  } else if (err.name === 'CastError') {
+    statusCode = 400;
+    title = 'Cast Error';
+    message = 'Invalid ID';
+  } else if (err.name === 'MongoServerError' && err.code === 11000) {
+    statusCode = 400;
+    title = 'Duplicate Key Error';
+    message = 'A record with this value already exists';
+  } else if (err.name === 'JsonWebTokenError') {
+    statusCode = 401;
+    title = 'Invalid Token';
+    message = 'Invalid token';
+  } else if (err.name === 'TokenExpiredError') {
+    statusCode = 401;
+    title = 'Token Expired';
+    message = 'Token expired';
+  } else if (err.name === 'SyntaxError') {
+    statusCode = 400;
+    title = 'Syntax Error';
+    message = 'Invalid JSON';
+  } else if (res.statusCode && res.statusCode !== 200) {
+    // Controller already called res.status(xxx) before throwing — respect it
+    // instead of silently downgrading it to 500. Keep the controller's own message.
+    statusCode = res.statusCode;
+    title = statusCode >= 500 ? 'Internal Server Error' : 'Error';
+  } else {
+    statusCode = 500;
+    title = 'Internal Server Error';
+  }
 
+  if (statusCode >= 500) {
+    console.error(err);
+  }
 
-    switch (errorResponse.message) {
-        case 'MongooseError':
-            statusCode = 400;
-            errorResponse.title = 'Mongoose Error';
-            errorResponse.message = 'Database Not Connected';
-            break;
-        case 'NotFoundError':
-            statusCode = 404;
-            errorResponse.title = 'Not Found';
-            break;
-        case 'MongoError':
-            if (err.code === 11000) { // MongoDB duplicate key error
-                statusCode = 400;
-                errorResponse.title = 'Duplicate Key Error';
-                errorResponse.message = 'Duplicate key error';
-            }
-            break;
-        case 'BadRequestError':
-            statusCode = 400;
-            errorResponse.title = 'Bad Request';
-            errorResponse.message = 'Bad request';
-            break;
-        case 'JsonWebTokenError':
-            statusCode = 401;
-            errorResponse.title = 'Invalid Token';
-            errorResponse.message = 'Invalid token';
-            break;
-        case 'TokenExpiredError':
-            statusCode = 401;
-            errorResponse.title = 'Token Expired';
-            errorResponse.message = 'Token expired';
-            break;
-        case 'SyntaxError':
-            statusCode = 400;
-            errorResponse.title = 'Syntax Error';
-            errorResponse.message = 'Invalid JSON';
-            break;
-        case 'CastError':
-            statusCode = 400;
-            errorResponse.title = 'Cast Error';
-            errorResponse.message = 'Invalid ID';
-            break;
-        case 'ValidationError':
-            statusCode = 400;
-            errorResponse.title = 'Validation Error';
-            errorResponse.message = err.message;
-            errorResponse.details = err.errors;
-            break;
-        case 'UnauthorizedError':
-            statusCode = 401;
-            errorResponse.title = 'Unauthorized';
-            errorResponse.message = 'Authentication is required for the request';
-            break;
-        case 'ForbiddenError':
-            statusCode = 403;
-            errorResponse.title = 'Forbidden';
-            errorResponse.message = 'The client does not have permission to access the resource';
-            break;
-        case 'ConflictError':
-            statusCode = 409;
-            errorResponse.title = 'Conflict';
-            errorResponse.message = 'The request conflicts with the current state of the resource';
-            break;
-        case 'TooManyRequestsError':
-            statusCode = 429;
-            errorResponse.title = 'Too Many Requests';
-            errorResponse.message = 'The user has sent too many requests in a given timeframe';
-            break;
-        default:
-            statusCode = 500;
-            errorResponse.title = 'Internal Server Error';
-            errorResponse.message = 'Something went wrong';
-            break;
-    }
-    errorResponse.code = statusCode;
+  const errorResponse = { title, code: statusCode, message };
+  if (details) errorResponse.details = details;
+  if (process.env.NODE_ENV !== 'production') errorResponse.stackTrace = err.stack;
 
-    res.status(statusCode).json(errorResponse);
+  res.status(statusCode).json(errorResponse);
 };

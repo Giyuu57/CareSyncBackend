@@ -13,16 +13,20 @@ import addressRoutes from './routes/addressRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import cors from 'cors';
-
-const app = express();
 import { run } from './config/moongose.js';
 
-
+const app = express();
 
 app.use(cors());
-
-run();
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "CareSync backend is connected",
+  });
+});
+
 app.use('/auth', auth);
 app.use('/user', userRoutes);
 app.use("/medicine", medicineRoutes);
@@ -34,16 +38,18 @@ app.use('/search', searchRoutes);
 app.use('/admin', adminRoutes);
 app.use(errorHandler);
 
+const PORT = process.env.PORT || 3000;
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-});
-
-const PO = process.env.PORT;
-
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "CareSync backend is connected",
+// Connect to the database first, then start accepting requests.
+// Most hosts (Render, Railway, etc.) assign their own PORT — the app must
+// listen on that, not a hardcoded value, or the platform can't route to it.
+run()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to start server: could not connect to database.', err);
+    process.exit(1);
   });
-});

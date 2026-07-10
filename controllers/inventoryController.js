@@ -65,7 +65,7 @@ export const updateinventoryAuth = asyncHandler(async (req, res) => {
     }
   }
 
-  const updatedinventory = await inventory.findByIdAndUpdate(
+  const updatedinventory = await inventory.findOneAndUpdate(
     { _id: id, store: req.user.store_id },
     updatedData,
     { new: true }

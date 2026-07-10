@@ -9,16 +9,25 @@ import {
 
 // Get address by Auth
 export const getAddressAuth = asyncHandler(async (req, res) => {
-  const address = await Address.findById(req.user.address);
+  const address = await Address.findOne({ store: req.user.store_id });
+  if (!address) {
+    res.status(404);
+    throw new Error('Address not found for the current user.');
+  }
   res.status(200).json(address);
 });
 
 // Update address by Auth
 export const updateAddressAuth = asyncHandler(async (req, res) => {
-  const { id } = req.user.address;
   const updatedData = req.body;
 
-  const updatedAddress = await Address.findByIdAndUpdate(id, updatedData, { new: true });
+  const address = await Address.findOne({ store: req.user.store_id });
+  if (!address) {
+    res.status(404);
+    throw new Error('Address not found for the current user.');
+  }
+
+  const updatedAddress = await Address.findByIdAndUpdate(address._id, updatedData, { new: true });
   res.status(200).json(updatedAddress);
 });
 
@@ -55,7 +64,19 @@ export const createAddress = asyncHandler(async (req, res) => {
     return validationError(res, 'Country is required.');
   }
 
-  const address = new Address({ latitude, longitude, street, city, state, postalCode, country });
+  const address = new Address({
+    latitude,
+    longitude,
+    street,
+    city,
+    state,
+    postalCode,
+    country,
+    location: {
+      type: 'Point',
+      coordinates: [Number(longitude), Number(latitude)],
+    },
+  });
   const savedAddress = await address.save();
 
   res.status(201).json(savedAddress);
@@ -102,6 +123,15 @@ export const updateAddressByAuthWithStoreID = asyncHandler(async (req, res) => {
   }
 
   const updatedData = req.body;
+  if (latitude !== undefined || longitude !== undefined) {
+    updatedData.location = {
+      type: 'Point',
+      coordinates: [
+        Number(longitude !== undefined ? longitude : address.longitude),
+        Number(latitude !== undefined ? latitude : address.latitude),
+      ],
+    };
+  }
 
   const updatedAddress = await Address.findByIdAndUpdate(
     address._id,

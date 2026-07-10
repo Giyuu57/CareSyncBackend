@@ -110,24 +110,32 @@ const forgotPassword = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findOne({ email: email.trim().toLowerCase() });
-  if (!user) {
-    res.status(404);
-    throw new Error('User not found');
+
+  let otp;
+  if (user) {
+    // Generate 6-digit OTP
+    otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOtp = otp;
+    user.resetOtpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save();
+
+    // TODO before going live: send `otp` by email via a real provider
+    // (SendGrid, SES, Nodemailer+SMTP, etc). Until that's wired up, this
+    // only logs server-side so OTPs never leave the backend.
+    console.log(`[FORGOT PASSWORD] OTP for ${email}: ${otp}`);
   }
 
-  // Generate 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  user.resetOtp = otp;
-  user.resetOtpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  // Respond identically whether or not the account exists, and never
+  // include the OTP in the HTTP response — otherwise anyone who knows an
+  // email address (real account or not) could enumerate accounts or reset
+  // a password without ever seeing the inbox.
+  const response = { message: 'If an account exists for that email, an OTP has been sent.' };
+  if (process.env.NODE_ENV !== 'production' && user) {
+    // Local-dev convenience only, never present in production responses.
+    response.otp = otp;
+  }
 
-  await user.save();
-
-  console.log(`[FORGOT PASSWORD] OTP for ${email}: ${otp}`);
-
-  res.status(200).json({
-    message: 'OTP sent successfully',
-    otp: otp // Return OTP for local testing
-  });
+  res.status(200).json(response);
 });
 
 const resetPassword = asyncHandler(async (req, res) => {

@@ -1,11 +1,12 @@
 import axios from 'axios';
+import asyncHandler from 'express-async-handler';
 import { Medication } from '../models/medicine.js'; // Your Mongoose model
 
 // Get the API key from environment variables
 const OPENFDA_API_KEY = process.env.OPENFDA_API_KEY || process.env.OPENFDA_KEY;
 
 // 🟡 Main search: query from DB, fallback to OpenFDA
-export const getMeds = async (req, res) => {
+export const getMeds = asyncHandler(async (req, res) => {
   const query = req.query.query?.toLowerCase();
   const source = req.query.source?.toLowerCase() || 'any';
   const limit = parseInt(req.query.limit) || 10; // Default limit is 10
@@ -25,7 +26,7 @@ export const getMeds = async (req, res) => {
   return res.json(openFdaResults);
   }
   return res.status(404).json({ error: 'No results found' });
-};
+});
 
 // 🟢 Search DB
 function escapeRegex(string) {
@@ -79,7 +80,7 @@ export const getMedsFromOpenFDA = async (query, limit, skip) => {
 };
 
 // 🔴 Get med by ID (DB or OpenFDA)
-export const getMedsFromId = async (req, res) => {
+export const getMedsFromId = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   if (id.startsWith('openfda-')) {
@@ -89,7 +90,7 @@ export const getMedsFromId = async (req, res) => {
 
   const result = await getMedsFromIdDatabase(id);
   return result ? res.json(result) : res.status(404).json({ error: 'Medicine not found in database' });
-};
+});
 
 // 🟢 Get by DB ID
 export const getMedsFromIdDatabase = async (id) => {
@@ -146,7 +147,7 @@ export const getMedsFromIdOpenFDA = async (id) => {
 };
 
 // 🟡 Get generic substitutes (same composition) from DB or OpenFDA
-export const getMedsSubstitutes = async (req, res) => {
+export const getMedsSubstitutes = asyncHandler(async (req, res) => {
   const { id } = req.params;
   
   let composition = '';
@@ -204,4 +205,4 @@ export const getMedsSubstitutes = async (req, res) => {
   }
 
   res.json(formatted);
-};
+});
