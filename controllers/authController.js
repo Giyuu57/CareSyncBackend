@@ -96,7 +96,8 @@ const login = asyncHandler(async (req, res) => {
       token,
     });
   } else {
-    throw new Error('ValidationError');
+    res.status(401);
+    throw new Error('Invalid email or password');
   }
 });
 
