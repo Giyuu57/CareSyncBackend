@@ -16,7 +16,9 @@ export const getMeds = asyncHandler(async (req, res) => {
 
   // Search in the database
   const dbResults = await getMedsFromDatabase(query, limit, skip);
-  if (dbResults.length > 0 && (source === 'any' || source === 'mediq')) {
+  // 'careSync' is what the frontend sends for "search our local database only".
+  // 'mediq' is kept for backward compatibility with any older callers.
+  if (dbResults.length > 0 && (source === 'any' || source === 'caresync' || source === 'mediq')) {
     return res.json(dbResults);
   }
 
