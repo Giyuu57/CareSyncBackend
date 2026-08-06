@@ -36,7 +36,9 @@ app.use('/inventory', inventoryRoutes);
 app.use('/order', orderRoutes);
 app.use('/address', addressRoutes);
 app.use('/search', searchRoutes);
+app.use('/api/search', searchRoutes);
 app.use('/medication', medicationApiRoutes);
+app.use('/api/medication', medicationApiRoutes);
 app.use('/admin', adminRoutes);
 app.use(errorHandler);
 
