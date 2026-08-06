@@ -59,7 +59,7 @@ export const getMedsFromOpenFDA = async (query, limit, skip) => {
   try {
     const response = await axios.get('https://api.fda.gov/drug/label.json', {
       params: {
-        search: `openfda.brand_name:"${query}" + openfda.generic_name:"${query}"`, // Search in both brand and generic names
+        search: `openfda.brand_name:"${query}" OR openfda.generic_name:"${query}"`, // Search in both brand and generic names
         limit,
         skip,
         api_key: OPENFDA_API_KEY,
