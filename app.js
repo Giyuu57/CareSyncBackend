@@ -12,6 +12,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import addressRoutes from './routes/addressRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import medicationApiRoutes from './config/apiservice.js';
 import cors from 'cors';
 import { run } from './config/moongose.js';
 
@@ -35,6 +36,7 @@ app.use('/inventory', inventoryRoutes);
 app.use('/order', orderRoutes);
 app.use('/address', addressRoutes);
 app.use('/search', searchRoutes);
+app.use('/medication', medicationApiRoutes);
 app.use('/admin', adminRoutes);
 app.use(errorHandler);
 

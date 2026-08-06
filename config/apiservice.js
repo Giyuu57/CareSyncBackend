@@ -1,9 +1,8 @@
-import express, { json } from 'express';
-import mongoose from 'mongoose';
+import { Router } from 'express';
 import axios from 'axios';
+import { Medication } from '../models/medicine.js';
 
-const app = express();
-app.use(express.json());
+const router = Router();
 
 // Free API configurations
 const apis = {
@@ -52,7 +51,7 @@ const apis = {
 };
 
 // Fetch and Save Medication Data
-app.get('/medication/:name', async (req, res) => {
+router.get('/:name', async (req, res) => {
   const { name } = req.params;
 
   try {
@@ -79,7 +78,7 @@ app.get('/medication/:name', async (req, res) => {
 });
 
 // Update Medication Data
-app.put('/medication/:name', async (req, res) => {
+router.put('/:name', async (req, res) => {
   const { name } = req.params;
 
   try {
@@ -97,6 +96,4 @@ app.put('/medication/:name', async (req, res) => {
   }
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+export default router;
