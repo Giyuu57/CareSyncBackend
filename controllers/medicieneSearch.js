@@ -95,6 +95,11 @@ export const getMedsFromId = asyncHandler(async (req, res) => {
     return res.json(result);
   }
 
+  const scannedResult = await resolveScannedMedicineId(id);
+  if (scannedResult) {
+    return res.json(scannedResult);
+  }
+
   const fallbackResults = await getMedsFromDatabase(id.toLowerCase(), 1, 0);
   if (fallbackResults.length > 0) {
     return res.json(fallbackResults[0]);
@@ -107,6 +112,62 @@ export const getMedsFromId = asyncHandler(async (req, res) => {
 
   return res.status(404).json({ error: 'Medicine not found in database' });
 });
+
+const resolveScannedMedicineId = async (code) => {
+  const normalizedCode = code.trim().replace(/[^a-zA-Z0-9-]/g, '');
+
+  if (!normalizedCode) {
+    return null;
+  }
+
+  const openFdaQueries = [
+    `(id:"${normalizedCode}" OR set_id:"${normalizedCode}")`,
+    `product_ndc:"${normalizedCode}"`,
+    `package_ndc:"${normalizedCode}"`,
+    `openfda.product_ndc:"${normalizedCode}"`,
+    `openfda.package_ndc:"${normalizedCode}"`,
+  ];
+
+  for (const search of openFdaQueries) {
+    try {
+      const response = await axios.get('https://api.fda.gov/drug/label.json', {
+        params: {
+          search,
+          limit: 1,
+          api_key: OPENFDA_API_KEY,
+        },
+      });
+
+      const item = response.data.results?.[0];
+      if (item) {
+        return {
+          id: item.id ? `openfda-${item.id}` : `openfda-${item.set_id || normalizedCode}`,
+          name: item.openfda?.brand_name?.[0] || item.openfda?.generic_name?.[0] || 'Unknown',
+          manufacturer: item.openfda?.manufacturer_name?.[0] || 'Unknown',
+          composition: item.openfda?.generic_name?.[0] || 'Unknown',
+          usage: item.indications_and_usage?.[0] || 'No usage information available',
+          precautions: item.warnings?.[0] || 'No precautions available',
+          sideEffects: item.adverse_reactions?.[0] || 'No side effects available',
+          storageInstructions: item.storage_and_handling?.[0] || 'No storage instructions available',
+          activeIngredients: item.active_ingredient?.[0] || 'No active ingredients available',
+          inactiveIngredients: item.inactive_ingredient?.[0] || 'No inactive ingredients available',
+          dosageAndAdministration: item.dosage_and_administration?.[0] || 'No dosage information available',
+          purpose: item.purpose?.[0] || 'No purpose information available',
+          warnings: item.warnings?.[0] || 'No warnings available',
+          askDoctor: item.ask_doctor?.[0] || 'No doctor consultation information available',
+          stopUse: item.stop_use?.[0] || 'No stop use information available',
+          pregnancyOrBreastFeeding: item.pregnancy_or_breast_feeding?.[0] || 'No pregnancy or breastfeeding information available',
+          keepOutOfReachOfChildren: item.keep_out_of_reach_of_children?.[0] || 'No child safety information available',
+          questions: item.questions?.[0] || 'No contact information available',
+        };
+      }
+    } catch (err) {
+      continue;
+    }
+  }
+
+  return null;
+};
 
 // 🟢 Get by DB ID
 export const getMedsFromIdDatabase = async (id) => {
