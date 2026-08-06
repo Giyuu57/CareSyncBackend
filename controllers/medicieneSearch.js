@@ -69,7 +69,7 @@ export const getMedsFromOpenFDA = async (query, limit, skip) => {
     const data = response.data.results
       .filter(item => item.openfda?.brand_name?.[0] || item.openfda?.generic_name?.[0])
       .map(item => ({
-        id: `openfda-${item.id}`,
+        id: `openfda-${item.id || item.set_id}`,
         name: item.openfda.brand_name?.[0] || item.openfda.generic_name?.[0], // Use brand name or generic name
         manufacturer: item.openfda.manufacturer_name?.[0] || 'Unknown',
       }));
@@ -113,7 +113,7 @@ export const getMedsFromIdOpenFDA = async (id) => {
     // Fetch data from OpenFDA
     const response = await axios.get(`https://api.fda.gov/drug/label.json`, {
       params: {
-        search: `id:${openFdaId}`, // Use the extracted ID to search
+        search: `(id:"${openFdaId}" OR set_id:"${openFdaId}")`, // Accept either OpenFDA identifier
         api_key: OPENFDA_API_KEY,
       },
     });
