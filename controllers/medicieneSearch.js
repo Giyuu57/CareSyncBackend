@@ -91,7 +91,21 @@ export const getMedsFromId = asyncHandler(async (req, res) => {
   }
 
   const result = await getMedsFromIdDatabase(id);
-  return result ? res.json(result) : res.status(404).json({ error: 'Medicine not found in database' });
+  if (result) {
+    return res.json(result);
+  }
+
+  const fallbackResults = await getMedsFromDatabase(id.toLowerCase(), 1, 0);
+  if (fallbackResults.length > 0) {
+    return res.json(fallbackResults[0]);
+  }
+
+  const openFdaFallback = await getMedsFromOpenFDA(id, 1, 0);
+  if (openFdaFallback.length > 0) {
+    return res.json(openFdaFallback[0]);
+  }
+
+  return res.status(404).json({ error: 'Medicine not found in database' });
 });
 
 // 🟢 Get by DB ID
@@ -113,7 +127,7 @@ export const getMedsFromIdOpenFDA = async (id) => {
     // Fetch data from OpenFDA
     const response = await axios.get(`https://api.fda.gov/drug/label.json`, {
       params: {
-        search: `(id:"${openFdaId}" OR set_id:"${openFdaId}")`, // Accept either OpenFDA identifier
+        search: `(id:"${openFdaId}" OR set_id:"${openFdaId}" OR product_ndc:"${openFdaId}" OR package_ndc:"${openFdaId}")`, // Accept common OpenFDA identifiers
         api_key: OPENFDA_API_KEY,
       },
     });
