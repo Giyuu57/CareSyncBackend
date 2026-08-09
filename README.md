@@ -1,8 +1,8 @@
-# MediQ Backend
+# CareSync
 
 ## Description
 
-The MediQ Backend is a Node.js and Express-based application designed to manage and facilitate the online sale and distribution of medicines. It provides a comprehensive set of APIs for user authentication, store management, medicine inventory, order processing, and location-based services. The backend integrates with MongoDB for data storage and utilizes Mongoose for schema modeling. It also integrates with external APIs like OpenFDA to provide comprehensive medicine information.
+The CareSyn Backend is a Node.js and Express-based application designed to manage and facilitate the online sale and distribution of medicines. It provides a comprehensive set of APIs for user authentication, store management, medicine inventory, order processing, and location-based services. The backend integrates with MongoDB for data storage and utilizes Mongoose for schema modeling. It also integrates with external APIs like OpenFDA to provide comprehensive medicine information.
 
 ## Features
 
