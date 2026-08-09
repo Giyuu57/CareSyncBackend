@@ -2,6 +2,7 @@ import { User } from '../models/user.js';
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { OAuth2Client } from 'google-auth-library';
 import {
   isValidEmail,
   isValidPhone,
@@ -101,6 +102,86 @@ const login = asyncHandler(async (req, res) => {
   }
 });
 
+// Created lazily (not at import time) so a missing GOOGLE_CLIENT_ID during
+// local dev doesn't crash the whole server on startup — it only breaks
+// this one route, with a clear error, the first time it's actually called.
+let googleClient;
+const getGoogleClient = () => {
+  if (!googleClient) {
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      throw new Error('GOOGLE_CLIENT_ID is not set on the server.');
+    }
+    googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  }
+  return googleClient;
+};
+
+const googleLogin = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+
+  if (!credential) {
+    return validationError(res, 'Google credential is required.');
+  }
+
+  // Verifies the JWT's signature, expiry, issuer, and that it was issued
+  // for OUR client ID — this is what prevents a forged/replayed token from
+  // a different Google app being accepted here.
+  let payload;
+  try {
+    const ticket = await getGoogleClient().verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch (err) {
+    res.status(401);
+    throw new Error('Invalid Google credential.');
+  }
+
+  if (!payload || !payload.email) {
+    res.status(401);
+    throw new Error('Invalid Google credential.');
+  }
+
+  // Google verifies the email itself for its own accounts, so this is
+  // trustworthy even though we skip our own email-format check here.
+  const email = payload.email.trim().toLowerCase();
+
+  let user = await User.findOne({ email });
+
+  if (user) {
+    if (user.isSuspended) {
+      res.status(403);
+      throw new Error('User account is suspended');
+    }
+    // Existing local-password account signing in with Google for the
+    // first time: link it instead of creating a duplicate user.
+    if (!user.googleId) {
+      user.googleId = payload.sub;
+      if (!user.avatar && payload.picture) user.avatar = payload.picture;
+      await user.save();
+    }
+  } else {
+    user = await User.create({
+      name: payload.name || email.split('@')[0],
+      email,
+      googleId: payload.sub,
+      avatar: payload.picture,
+    });
+  }
+
+  const token = jwt.sign(
+    { id: user._id, name: user.name, role: user.role, store_id: user.store_id },
+    process.env.JWT_SECRET,
+    { expiresIn: '30d' }
+  );
+
+  res.status(200).json({
+    message: 'User Logged In',
+    token,
+  });
+});
+
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   if (!email) {
@@ -182,4 +263,4 @@ const resetPassword = asyncHandler(async (req, res) => {
   });
 });
 
-export { register, login, forgotPassword, resetPassword };
+export { register, login, googleLogin, forgotPassword, resetPassword };
